@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profession.name }} Interview - AI Interview{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recording-wave {
+        width: 100%;
+        height: 60px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        margin-top: 10px;
+        display: none;
+    }
+    
+    .recording-wave.active {
+        display: block;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,50 Q10,40 20,50 T40,50 T60,50 T80,50 T100,50" stroke="%23dc3545" fill="none" stroke-width="2"/></svg>');
+        background-size: 100% 100%;
+        animation: wave 2s linear infinite;
+    }
+    
+    @keyframes wave {
+        0% { background-position: 0 0; }
+        100% { background-position: 100% 0; }
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ profession.name }} ({{ grade | capitalize }}) Interview</h1>
+        <a href="{{ url_for('catalog.profession_detail', profession_id=profession.id) }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Profession
+        </a>
+    </div>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> This interview consists of 5 questions. For each question, record your answer using the microphone button. Your audio response will be analyzed by AI to provide feedback.
+    </div>
+    
+    <input type="hidden" id="interview-id" value="{{ interview.id }}">
+    
+    <div class="questions-container">
+        {% for question in questions %}
+            <div class="question-box{{ ' d-none' if loop.index != 1 }}" id="question-box-{{ question.id }}" data-index="{{ loop.index }}" data-question-id="{{ question.id }}">
+                <h4 class="mb-3">Question {{ loop.index }} of {{ questions|length }}</h4>
+                <p class="lead">{{ question.text }}</p>
+                
+                <div class="record-controls" id="record-controls-{{ question.id }}">
+                    <div class="recording-wave" id="recording-wave-{{ question.id }}"></div>
+                    <div id="recording-timer-{{ question.id }}" class="text-center" style="display:none;">
+                        <span class="badge bg-danger">Recording: <span id="timer-{{ question.id }}">0:00</span> / 2:00</span>
+                    </div>
+                    <p id="record-status-{{ question.id }}">Click the button to start recording your answer (max 2 minutes)</p>
+                    <button type="button" class="record-btn" id="record-btn-{{ question.id }}" onclick="toggleRecording({{ question.id }})">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+                
+                <div class="feedback-section d-none" id="feedback-section-{{ question.id }}">
+                    <h5 class="mt-4 mb-3">Feedback</h5>
+                    <div class="card">
+                        <div class="card-body" id="feedback-{{ question.id }}">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p>Waiting for feedback...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if loop.index < questions|length %}
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-primary next-question-btn" onclick="nextQuestion({{ question.id }}, {{ questions[loop.index0 + 1].id if loop.index < questions|length else 'null' }})">
+                            Next Question <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <div class="d-none text-center mt-4 mb-5" id="complete-interview-section">
+        <div class="alert alert-success">
+            <h4>All questions answered!</h4>
+            <p>Click the button below to complete the interview and see your overall review.</p>
+        </div>
+        <button type="button" class="btn btn-lg btn-success" id="complete-btn" onclick="completeInterview()">
+            Complete Interview
+        </button>
+    </div>
+</div>
+{% endblock main_content %}
+
+{% block extra_js %}
+<script>
+    // Modify the record button UI when clicked
+    $(".record-btn").on("click", function() {
+        const id = $(this).attr("id").replace("record-btn-", "");
+        if (!$(this).hasClass("recording")) {
+            // Start recording
+            $("#recording-wave-" + id).addClass("active");
+        } else {
+            // Stop recording
+            $("#recording-wave-" + id).removeClass("active");
+        }
+    });
+</script>
+{% endblock %}

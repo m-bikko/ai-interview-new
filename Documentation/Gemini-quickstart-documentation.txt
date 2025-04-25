@@ -1,0 +1,697 @@
+Руководство: Начало работы с Gemini API
+Python Node.js Web REST Go Dart (Flutter) Android Swift
+
+
+
+Запустить в Google Colab
+Посмотреть исходный код на GitHub
+В этом кратком руководстве показано, как использовать Python SDK для API Gemini, который предоставляет доступ к большим языковым моделям Google Gemini. Из этого краткого руководства вы узнаете, как:
+
+Настройте среду разработки и доступ к API для использования Gemini.
+Генерируйте текстовые ответы на основе текстовых вводов.
+Генерируйте текстовые ответы на основе мультимодальных входных данных (текста и изображений).
+Используйте Gemini для многоходовых разговоров (чата).
+Используйте вложения для больших языковых моделей.
+Предварительные условия
+Вы можете запустить это краткое руководство в Google Colab , который запускает этот блокнот прямо в браузере и не требует дополнительной настройки среды.
+
+Альтернативно, чтобы выполнить это краткое руководство локально, убедитесь, что ваша среда разработки соответствует следующим требованиям:
+
+Питон 3.9+
+Установка jupyter для запуска ноутбука.
+Настраивать
+Установите SDK Python
+Python SDK для Gemini API содержится в пакете google-generativeai . Установите зависимость с помощью pip:
+
+
+pip install -q -U google-generativeai
+Импортировать пакеты
+Импортируйте необходимые пакеты.
+
+
+import pathlib
+import textwrap
+
+import google.generativeai as genai
+
+from IPython.display import display
+from IPython.display import Markdown
+
+def to_markdown(text):
+  text = text.replace('•', '  *')
+  return Markdown(textwrap.indent(text, '> ', predicate=lambda _: True))
+
+# Used to securely store your API key
+from google.colab import userdata
+Настройте свой ключ API
+Прежде чем вы сможете использовать API Gemini, вам необходимо сначала получить ключ API. Если у вас его еще нет, создайте ключ одним щелчком мыши в Google AI Studio.
+
+Получить ключ API
+
+В Colab добавьте ключ к менеджеру секретов под знаком «🔑» на левой панели. Дайте ему имя GOOGLE_API_KEY .
+
+Получив ключ API, передайте его в SDK. Вы можете сделать это двумя способами:
+
+Поместите ключ в переменную среды GOOGLE_API_KEY (SDK автоматически подберет его оттуда).
+Передайте ключ в genai.configure(api_key=...)
+
+# Or use `os.getenv('GOOGLE_API_KEY')` to fetch an environment variable.
+GOOGLE_API_KEY=userdata.get('GOOGLE_API_KEY')
+
+genai.configure(api_key=GOOGLE_API_KEY)
+Список моделей
+Теперь вы готовы вызвать API Gemini. Используйте list_models , чтобы просмотреть доступные модели Gemini:
+
+gemini-1.5-flash : наша самая быстрая мультимодальная модель
+gemini-1.5-pro : наша самая функциональная и интеллектуальная мультимодальная модель.
+
+for m in genai.list_models():
+  if 'generateContent' in m.supported_generation_methods:
+    print(m.name)
+Примечание. Подробную информацию о доступных моделях, включая их возможности и ограничения по скорости, см. в разделе Модели Gemini . Существуют варианты запроса увеличения лимита ставок .
+Генерировать текст из текстовых вводов
+Для текстовых подсказок используйте модель Gemini 1.5 или модель Gemini 1.0 Pro:
+
+
+model = genai.GenerativeModel('gemini-1.5-flash')
+generate_content может обрабатывать широкий спектр вариантов использования, включая многоходовой чат и мультимодальный ввод, в зависимости от того, что поддерживает базовая модель. Доступные модели поддерживают только текст и изображения в качестве входных данных и текст в качестве выходных данных.
+
+В простейшем случае вы можете передать строку приглашения методу GenerativeModel.generate_content :
+
+
+%%time
+response = model.generate_content("What is the meaning of life?")
+
+CPU times: user 110 ms, sys: 12.3 ms, total: 123 ms
+Wall time: 8.25 s
+В простых случаях аксессор response.text — это все, что вам нужно. Чтобы отобразить форматированный текст Markdown, используйте функцию to_markdown :
+
+
+to_markdown(response.text)
+
+The query of life's purpose has perplexed people across centuries, cultures, and continents. While there is no universally recognized response, many ideas have been put forth, and the response is frequently dependent on individual ideas, beliefs, and life experiences.
+
+1.  **Happiness and Well-being:** Many individuals believe that the goal of life is to attain personal happiness and well-being. This might entail locating pursuits that provide joy, establishing significant connections, caring for one's physical and mental health, and pursuing personal goals and interests.
+
+2.  **Meaningful Contribution:** Some believe that the purpose of life is to make a meaningful contribution to the world. This might entail pursuing a profession that benefits others, engaging in volunteer or charitable activities, generating art or literature, or inventing.
+
+3.  **Self-realization and Personal Growth:** The pursuit of self-realization and personal development is another common goal in life. This might entail learning new skills, pushing one's boundaries, confronting personal obstacles, and evolving as a person.
+
+4.  **Ethical and Moral Behavior:** Some believe that the goal of life is to act ethically and morally. This might entail adhering to one's moral principles, doing the right thing even when it is difficult, and attempting to make the world a better place.
+
+5.  **Spiritual Fulfillment:** For some, the purpose of life is connected to spiritual or religious beliefs. This might entail seeking a connection with a higher power, practicing religious rituals, or following spiritual teachings.
+
+6.  **Experiencing Life to the Fullest:** Some individuals believe that the goal of life is to experience all that it has to offer. This might entail traveling, trying new things, taking risks, and embracing new encounters.
+
+7.  **Legacy and Impact:** Others believe that the purpose of life is to leave a lasting legacy and impact on the world. This might entail accomplishing something noteworthy, being remembered for one's contributions, or inspiring and motivating others.
+
+8.  **Finding Balance and Harmony:** For some, the purpose of life is to find balance and harmony in all aspects of their lives. This might entail juggling personal, professional, and social obligations, seeking inner peace and contentment, and living a life that is in accordance with one's values and beliefs.
+
+Ultimately, the meaning of life is a personal journey, and different individuals may discover their own unique purpose through their experiences, reflections, and interactions with the world around them.
+Если API не смог вернуть результат, используйте GenerateContentResponse.prompt_feedback чтобы узнать, не был ли он заблокирован из соображений безопасности в отношении запроса.
+
+
+response.prompt_feedback
+
+safety_ratings {
+  category: HARM_CATEGORY_SEXUALLY_EXPLICIT
+  probability: NEGLIGIBLE
+}
+safety_ratings {
+  category: HARM_CATEGORY_HATE_SPEECH
+  probability: NEGLIGIBLE
+}
+safety_ratings {
+  category: HARM_CATEGORY_HARASSMENT
+  probability: NEGLIGIBLE
+}
+safety_ratings {
+  category: HARM_CATEGORY_DANGEROUS_CONTENT
+  probability: NEGLIGIBLE
+}
+Gemini может генерировать несколько возможных ответов на один запрос. Эти возможные ответы называются candidates , и вы можете просмотреть их, чтобы выбрать в качестве ответа наиболее подходящий.
+
+Просмотрите кандидатов на ответ с помощью GenerateContentResponse.candidates :
+
+
+response.candidates
+
+[
+  content {
+    parts {
+      text: "The query of life\'s purpose has perplexed people across centuries, cultures, and continents. While there is no universally recognized response, many ideas have been put forth, and the response is frequently dependent on individual ideas, beliefs, and life experiences.\n\n1. **Happiness and Well-being:** Many individuals believe that the goal of life is to attain personal happiness and well-being. This might entail locating pursuits that provide joy, establishing significant connections, caring for one\'s physical and mental health, and pursuing personal goals and interests.\n\n2. **Meaningful Contribution:** Some believe that the purpose of life is to make a meaningful contribution to the world. This might entail pursuing a profession that benefits others, engaging in volunteer or charitable activities, generating art or literature, or inventing.\n\n3. **Self-realization and Personal Growth:** The pursuit of self-realization and personal development is another common goal in life. This might entail learning new skills, pushing one\'s boundaries, confronting personal obstacles, and evolving as a person.\n\n4. **Ethical and Moral Behavior:** Some believe that the goal of life is to act ethically and morally. This might entail adhering to one\'s moral principles, doing the right thing even when it is difficult, and attempting to make the world a better place.\n\n5. **Spiritual Fulfillment:** For some, the purpose of life is connected to spiritual or religious beliefs. This might entail seeking a connection with a higher power, practicing religious rituals, or following spiritual teachings.\n\n6. **Experiencing Life to the Fullest:** Some individuals believe that the goal of life is to experience all that it has to offer. This might entail traveling, trying new things, taking risks, and embracing new encounters.\n\n7. **Legacy and Impact:** Others believe that the purpose of life is to leave a lasting legacy and impact on the world. This might entail accomplishing something noteworthy, being remembered for one\'s contributions, or inspiring and motivating others.\n\n8. **Finding Balance and Harmony:** For some, the purpose of life is to find balance and harmony in all aspects of their lives. This might entail juggling personal, professional, and social obligations, seeking inner peace and contentment, and living a life that is in accordance with one\'s values and beliefs.\n\nUltimately, the meaning of life is a personal journey, and different individuals may discover their own unique purpose through their experiences, reflections, and interactions with the world around them."
+    }
+    role: "model"
+  }
+  finish_reason: STOP
+  index: 0
+  safety_ratings {
+    category: HARM_CATEGORY_SEXUALLY_EXPLICIT
+    probability: NEGLIGIBLE
+  }
+  safety_ratings {
+    category: HARM_CATEGORY_HATE_SPEECH
+    probability: NEGLIGIBLE
+  }
+  safety_ratings {
+    category: HARM_CATEGORY_HARASSMENT
+    probability: NEGLIGIBLE
+  }
+  safety_ratings {
+    category: HARM_CATEGORY_DANGEROUS_CONTENT
+    probability: NEGLIGIBLE
+  }
+]
+По умолчанию модель возвращает ответ после завершения всего процесса генерации. Вы также можете передавать ответ по мере его создания, и модель будет возвращать фрагменты ответа, как только они будут сгенерированы.
+
+Для потоковой передачи ответов используйте GenerativeModel.generate_content(..., stream=True) .
+
+
+%%time
+response = model.generate_content("What is the meaning of life?", stream=True)
+
+CPU times: user 102 ms, sys: 25.1 ms, total: 128 ms
+Wall time: 7.94 s
+
+for chunk in response:
+  print(chunk.text)
+  print("_"*80)
+
+The query of life's purpose has perplexed people across centuries, cultures, and
+________________________________________________________________________________
+ continents. While there is no universally recognized response, many ideas have been put forth, and the response is frequently dependent on individual ideas, beliefs, and life experiences
+________________________________________________________________________________
+.
+
+1.  **Happiness and Well-being:** Many individuals believe that the goal of life is to attain personal happiness and well-being. This might entail locating pursuits that provide joy, establishing significant connections, caring for one's physical and mental health, and pursuing personal goals and aspirations.
+
+2.  **Meaning
+________________________________________________________________________________
+ful Contribution:** Some believe that the purpose of life is to make a meaningful contribution to the world. This might entail pursuing a profession that benefits others, engaging in volunteer or charitable activities, generating art or literature, or inventing.
+
+3.  **Self-realization and Personal Growth:** The pursuit of self-realization and personal development is another common goal in life. This might entail learning new skills, exploring one's interests and abilities, overcoming obstacles, and becoming the best version of oneself.
+
+4.  **Connection and Relationships:** For many individuals, the purpose of life is found in their relationships with others. This might entail building
+________________________________________________________________________________
+ strong bonds with family and friends, fostering a sense of community, and contributing to the well-being of those around them.
+
+5.  **Spiritual Fulfillment:** For those with religious or spiritual beliefs, the purpose of life may be centered on seeking spiritual fulfillment or enlightenment. This might entail following religious teachings, engaging in spiritual practices, or seeking a deeper understanding of the divine.
+
+6.  **Experiencing the Journey:** Some believe that the purpose of life is simply to experience the journey itself, with all its joys and sorrows. This perspective emphasizes embracing the present moment, appreciating life's experiences, and finding meaning in the act of living itself.
+
+7.  **Legacy and Impact:** For others, the goal of life is to leave a lasting legacy or impact on the world. This might entail making a significant contribution to a particular field, leaving a positive mark on future generations, or creating something that will be remembered and cherished long after one's lifetime.
+
+Ultimately, the meaning of life is a personal and subjective question, and there is no single, universally accepted answer. It is about discovering what brings you fulfillment, purpose, and meaning in your own life, and living in accordance with those values.
+________________________________________________________________________________
+При потоковой передаче некоторые атрибуты ответа недоступны, пока вы не пройдете по всем фрагментам ответа. Это показано ниже:
+
+
+response = model.generate_content("What is the meaning of life?", stream=True)
+Атрибут prompt_feedback работает:
+
+
+response.prompt_feedback
+
+safety_ratings {
+  category: HARM_CATEGORY_SEXUALLY_EXPLICIT
+  probability: NEGLIGIBLE
+}
+safety_ratings {
+  category: HARM_CATEGORY_HATE_SPEECH
+  probability: NEGLIGIBLE
+}
+safety_ratings {
+  category: HARM_CATEGORY_HARASSMENT
+  probability: NEGLIGIBLE
+}
+safety_ratings {
+  category: HARM_CATEGORY_DANGEROUS_CONTENT
+  probability: NEGLIGIBLE
+}
+Но атрибуты, такие как text этого не делают:
+
+
+try:
+  response.text
+except Exception as e:
+  print(f'{type(e).__name__}: {e}')
+
+IncompleteIterationError: Please let the response complete iteration before accessing the final accumulated
+attributes (or call `response.resolve()`)
+Генерация текста из изображений и текстовых вводов
+Примечание. Если размер приглашений превышает 20 МБ, загрузите медиафайлы с помощью File API .
+Gemini предоставляет различные модели, поддерживающие мультимодальный ввод (модели Gemini 1.5), позволяющие вводить как текст, так и изображения. Обязательно ознакомьтесь с требованиями к изображениям для подсказок .
+
+Если входные данные приглашения включают в себя как текст, так и изображения, используйте Gemini 1.5 с методом GenerativeModel.generate_content для генерации текстового вывода:
+
+Давайте включим изображение:
+
+
+curl -o image.jpg https://t0.gstatic.com/licensed-image?q=tbn:ANd9GcQ_Kevbk21QBRy-PgB4kQpS79brbmmEG7m3VOTShAn4PecDU5H5UxrJxE3Dw1JiaG17V88QIol19-3TM2wCHw
+
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100  405k  100  405k    0     0  6982k      0 --:--:-- --:--:-- --:--:-- 7106k
+
+import PIL.Image
+
+img = PIL.Image.open('image.jpg')
+img
+png
+
+Используйте модель Gemini 1.5 и передайте изображение модели с generate_content .
+
+
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+response = model.generate_content(img)
+
+to_markdown(response.text)
+
+Chicken Teriyaki Meal Prep Bowls with brown rice, roasted broccoli and bell peppers.
+Чтобы предоставить в приглашении и текст, и изображения, передайте список, содержащий строки и изображения:
+
+
+response = model.generate_content(["Write a short, engaging blog post based on this picture. It should include a description of the meal in the photo and talk about my journey meal prepping.", img], stream=True)
+response.resolve()
+
+to_markdown(response.text)
+
+Meal prepping is a great way to save time and money, and it can also help you to eat healthier. This meal is a great example of a healthy and delicious meal that can be easily prepped ahead of time.
+
+This meal features brown rice, roasted vegetables, and chicken teriyaki. The brown rice is a whole grain that is high in fiber and nutrients. The roasted vegetables are a great way to get your daily dose of vitamins and minerals. And the chicken teriyaki is a lean protein source that is also packed with flavor.
+
+This meal is easy to prepare ahead of time. Simply cook the brown rice, roast the vegetables, and cook the chicken teriyaki. Then, divide the meal into individual containers and store them in the refrigerator. When you're ready to eat, simply grab a container and heat it up.
+
+This meal is a great option for busy people who are looking for a healthy and delicious way to eat. It's also a great meal for those who are trying to lose weight or maintain a healthy weight.
+
+If you're looking for a healthy and delicious meal that can be easily prepped ahead of time, this meal is a great option. Give it a try today!
+Разговоры в чате
+Gemini позволяет вам вести беседы в произвольной форме в течение нескольких ходов. Класс ChatSession упрощает процесс, управляя состоянием разговора, поэтому, в отличие от generate_content , вам не нужно хранить историю разговоров в виде списка.
+
+Инициализируйте чат:
+
+
+model = genai.GenerativeModel('gemini-1.5-flash')
+chat = model.start_chat(history=[])
+chat
+
+<google.generativeai.generative_models.ChatSession at 0x7b7b68250100>
+Метод ChatSession.send_message возвращает тот же тип GenerateContentResponse , что и GenerativeModel.generate_content . Он также добавляет ваше сообщение и ответ в историю чата:
+
+
+response = chat.send_message("In one sentence, explain how a computer works to a young child.")
+to_markdown(response.text)
+
+A computer is like a very smart machine that can understand and follow our instructions, help us with our work, and even play games with us!
+
+chat.history
+
+[
+  parts {
+    text: "In one sentence, explain how a computer works to a young child."
+  }
+  role: "user",
+  parts {
+    text: "A computer is like a very smart machine that can understand and follow our instructions, help us with our work, and even play games with us!"
+  }
+  role: "model"
+]
+Вы можете продолжать отправлять сообщения, чтобы продолжить разговор. Используйте stream=True для потоковой передачи чата:
+
+
+response = chat.send_message("Okay, how about a more detailed explanation to a high schooler?", stream=True)
+
+for chunk in response:
+  print(chunk.text)
+  print("_"*80)
+
+A computer works by following instructions, called a program, which tells it what to
+________________________________________________________________________________
+ do. These instructions are written in a special language that the computer can understand, and they are stored in the computer's memory. The computer's processor
+________________________________________________________________________________
+, or CPU, reads the instructions from memory and carries them out, performing calculations and making decisions based on the program's logic. The results of these calculations and decisions are then displayed on the computer's screen or stored in memory for later use.
+
+To give you a simple analogy, imagine a computer as a
+________________________________________________________________________________
+ chef following a recipe. The recipe is like the program, and the chef's actions are like the instructions the computer follows. The chef reads the recipe (the program) and performs actions like gathering ingredients (fetching data from memory), mixing them together (performing calculations), and cooking them (processing data). The final dish (the output) is then presented on a plate (the computer screen).
+
+In summary, a computer works by executing a series of instructions, stored in its memory, to perform calculations, make decisions, and display or store the results.
+________________________________________________________________________________
+Объекты glm.Content содержат список объектов glm.Part , каждый из которых содержит либо текст (строку), либо inline_data ( glm.Blob ), где большой двоичный объект содержит двоичные данные и mime_type . История чата доступна в виде списка объектов glm.Content в ChatSession.history :
+
+
+for message in chat.history:
+  display(to_markdown(f'**{message.role}**: {message.parts[0].text}'))
+
+**user**: In one sentence, explain how a computer works to a young child.
+
+**model**: A computer is like a very smart machine that can understand and follow our instructions, help us with our work, and even play games with us!
+
+**user**: Okay, how about a more detailed explanation to a high schooler?
+
+**model**: A computer works by following instructions, called a program, which tells it what to do. These instructions are written in a special language that the computer can understand, and they are stored in the computer's memory. The computer's processor, or CPU, reads the instructions from memory and carries them out, performing calculations and making decisions based on the program's logic. The results of these calculations and decisions are then displayed on the computer's screen or stored in memory for later use.
+
+To give you a simple analogy, imagine a computer as a chef following a recipe. The recipe is like the program, and the chef's actions are like the instructions the computer follows. The chef reads the recipe (the program) and performs actions like gathering ingredients (fetching data from memory), mixing them together (performing calculations), and cooking them (processing data). The final dish (the output) is then presented on a plate (the computer screen).
+
+In summary, a computer works by executing a series of instructions, stored in its memory, to perform calculations, make decisions, and display or store the results.
+Подсчитайте жетоны
+Большие языковые модели имеют контекстное окно, а длина контекста часто измеряется количеством токенов . С помощью Gemini API вы можете определить количество токенов на любой объект genai.protos.Content . В простейшем случае вы можете передать строку запроса в метод GenerativeModel.count_tokens следующим образом:
+
+
+model.count_tokens("What is the meaning of life?")
+
+total_tokens: 7
+Аналогичным образом вы можете проверить token_count для вашего ChatSession :
+
+
+model.count_tokens(chat.history)
+
+total_tokens: 501
+Используйте вложения
+Встраивание — это метод, используемый для представления информации в виде списка чисел с плавающей запятой в массиве. С помощью Gemini вы можете представлять текст (слова, предложения и блоки текста) в векторизованной форме, что упрощает сравнение и сопоставление вложений. Например, два текста, которые имеют схожую тему или настроение, должны иметь схожие вложения, которые можно идентифицировать с помощью методов математического сравнения, таких как косинусное сходство. Дополнительную информацию о том, как и почему следует использовать встраивания, можно найти в руководстве по встраиваниям .
+
+Используйте метод embed_content для создания вложений. Этот метод обрабатывает внедрение для следующих задач ( task_type ):
+
+Тип задачи	Описание
+RETRIEVAL_QUERY	Указывает, что данный текст является запросом в настройках поиска/извлечения.
+ПОЛУЧЕНИЕ_ДОКУМЕНТА	Указывает, что данный текст является документом в настройках поиска/извлечения. Для использования этого типа задачи требуется title .
+СЕМАНТИЧЕСКОЕ_ПОХОЖИЕ	Указывает, что данный текст будет использоваться для семантического текстового сходства (STS).
+КЛАССИФИКАЦИЯ	Указывает, что внедрения будут использоваться для классификации.
+КЛАСТЕРИЗАЦИЯ	Указывает, что внедрения будут использоваться для кластеризации.
+Следующее генерирует внедрение для одной строки для поиска документа:
+
+
+result = genai.embed_content(
+    model="models/embedding-001",
+    content="What is the meaning of life?",
+    task_type="retrieval_document",
+    title="Embedding of single string")
+
+# 1 input > 1 vector output
+print(str(result['embedding'])[:50], '... TRIMMED]')
+
+[-0.003216741, -0.013358698, -0.017649598, -0.0091 ... TRIMMED]
+Примечание. Тип задачи retrieval_document — единственная задача, которая принимает заголовок.
+Чтобы обрабатывать пакеты строк, передайте список строк в content :
+
+
+result = genai.embed_content(
+    model="models/embedding-001",
+    content=[
+      'What is the meaning of life?',
+      'How much wood would a woodchuck chuck?',
+      'How does the brain work?'],
+    task_type="retrieval_document",
+    title="Embedding of list of strings")
+
+# A list of inputs > A list of vectors output
+for v in result['embedding']:
+  print(str(v)[:50], '... TRIMMED ...')
+
+[0.0040260437, 0.004124458, -0.014209415, -0.00183 ... TRIMMED ...
+[-0.004049845, -0.0075574904, -0.0073463684, -0.03 ... TRIMMED ...
+[0.025310587, -0.0080734305, -0.029902633, 0.01160 ... TRIMMED ...
+Хотя функция genai.embed_content принимает строки или списки строк, на самом деле она построена на основе типа genai.protos.Content (например, GenerativeModel.generate_content ). Объекты glm.Content — это основные единицы общения в API.
+
+Хотя объект genai.protos.Content является мультимодальным, метод embed_content поддерживает только встраивание текста. Такая конструкция дает API возможность расширяться до мультимодальных вложений.
+
+
+response.candidates[0].content
+
+parts {
+  text: "A computer works by following instructions, called a program, which tells it what to do. These instructions are written in a special language that the computer can understand, and they are stored in the computer\'s memory. The computer\'s processor, or CPU, reads the instructions from memory and carries them out, performing calculations and making decisions based on the program\'s logic. The results of these calculations and decisions are then displayed on the computer\'s screen or stored in memory for later use.\n\nTo give you a simple analogy, imagine a computer as a chef following a recipe. The recipe is like the program, and the chef\'s actions are like the instructions the computer follows. The chef reads the recipe (the program) and performs actions like gathering ingredients (fetching data from memory), mixing them together (performing calculations), and cooking them (processing data). The final dish (the output) is then presented on a plate (the computer screen).\n\nIn summary, a computer works by executing a series of instructions, stored in its memory, to perform calculations, make decisions, and display or store the results."
+}
+role: "model"
+
+result = genai.embed_content(
+    model = 'models/embedding-001',
+    content = response.candidates[0].content)
+
+# 1 input > 1 vector output
+print(str(result['embedding'])[:50], '... TRIMMED ...')
+
+[-0.013921871, -0.03504407, -0.0051786783, 0.03113 ... TRIMMED ...
+Аналогично, история чата содержит список объектов genai.protos.Content , которые вы можете передать непосредственно в функцию embed_content :
+
+
+chat.history
+
+[
+  parts {
+    text: "In one sentence, explain how a computer works to a young child."
+  }
+  role: "user",
+  parts {
+    text: "A computer is like a very smart machine that can understand and follow our instructions, help us with our work, and even play games with us!"
+  }
+  role: "model",
+  parts {
+    text: "Okay, how about a more detailed explanation to a high schooler?"
+  }
+  role: "user",
+  parts {
+    text: "A computer works by following instructions, called a program, which tells it what to do. These instructions are written in a special language that the computer can understand, and they are stored in the computer\'s memory. The computer\'s processor, or CPU, reads the instructions from memory and carries them out, performing calculations and making decisions based on the program\'s logic. The results of these calculations and decisions are then displayed on the computer\'s screen or stored in memory for later use.\n\nTo give you a simple analogy, imagine a computer as a chef following a recipe. The recipe is like the program, and the chef\'s actions are like the instructions the computer follows. The chef reads the recipe (the program) and performs actions like gathering ingredients (fetching data from memory), mixing them together (performing calculations), and cooking them (processing data). The final dish (the output) is then presented on a plate (the computer screen).\n\nIn summary, a computer works by executing a series of instructions, stored in its memory, to perform calculations, make decisions, and display or store the results."
+  }
+  role: "model"
+]
+
+result = genai.embed_content(
+    model = 'models/embedding-001',
+    content = chat.history)
+
+# 1 input > 1 vector output
+for i,v in enumerate(result['embedding']):
+  print(str(v)[:50], '... TRIMMED...')
+
+[-0.014632266, -0.042202696, -0.015757175, 0.01548 ... TRIMMED...
+[-0.010979066, -0.024494737, 0.0092659835, 0.00803 ... TRIMMED...
+[-0.010055617, -0.07208932, -0.00011750793, -0.023 ... TRIMMED...
+[-0.013921871, -0.03504407, -0.0051786783, 0.03113 ... TRIMMED...
+Расширенные варианты использования
+В следующих разделах обсуждаются расширенные варианты использования и подробности нижнего уровня Python SDK для Gemini API.
+
+Настройки безопасности
+Аргумент safety_settings позволяет настроить то, что модель блокирует и разрешает как в подсказках, так и в ответах. По умолчанию настройки безопасности блокируют контент со средней и/или высокой вероятностью небезопасного контента по всем параметрам. Узнайте больше о настройках безопасности .
+
+Введите сомнительное приглашение и запустите модель с настройками безопасности по умолчанию, и она не вернет ни одного кандидата:
+
+
+response = model.generate_content('[Questionable prompt here]')
+response.candidates
+
+[
+  content {
+    parts {
+      text: "I\'m sorry, but this prompt involves a sensitive topic and I\'m not allowed to generate responses that are potentially harmful or inappropriate."
+    }
+    role: "model"
+  }
+  finish_reason: STOP
+  index: 0
+  safety_ratings {
+    category: HARM_CATEGORY_SEXUALLY_EXPLICIT
+    probability: NEGLIGIBLE
+  }
+  safety_ratings {
+    category: HARM_CATEGORY_HATE_SPEECH
+    probability: NEGLIGIBLE
+  }
+  safety_ratings {
+    category: HARM_CATEGORY_HARASSMENT
+    probability: NEGLIGIBLE
+  }
+  safety_ratings {
+    category: HARM_CATEGORY_DANGEROUS_CONTENT
+    probability: NEGLIGIBLE
+  }
+]
+prompt_feedback сообщит вам, какой фильтр безопасности заблокировал запрос:
+
+
+response.prompt_feedback
+
+safety_ratings {
+  category: HARM_CATEGORY_SEXUALLY_EXPLICIT
+  probability: NEGLIGIBLE
+}
+safety_ratings {
+  category: HARM_CATEGORY_HATE_SPEECH
+  probability: NEGLIGIBLE
+}
+safety_ratings {
+  category: HARM_CATEGORY_HARASSMENT
+  probability: NEGLIGIBLE
+}
+safety_ratings {
+  category: HARM_CATEGORY_DANGEROUS_CONTENT
+  probability: NEGLIGIBLE
+}
+Теперь предоставьте тот же запрос модели с новыми настройками безопасности, и вы можете получить ответ.
+
+
+response = model.generate_content('[Questionable prompt here]',
+                                  safety_settings={'HARASSMENT':'block_none'})
+response.text
+Также обратите внимание, что у каждого кандидата есть свои собственные safety_ratings на случай, если приглашение пройдет успешно, но отдельные ответы не пройдут проверку безопасности.
+
+Кодировать сообщения
+В предыдущих разделах использовался SDK, чтобы упростить отправку запросов в API. В этом разделе предлагается полностью типизированный эквивалент предыдущего примера, чтобы вы могли лучше понять детали нижнего уровня, касающиеся того, как SDK кодирует сообщения.
+
+SDK пытается преобразовать ваше сообщение в объект genai.protos.Content , который содержит список объектов genai.protos.Part , каждый из которых содержит:
+
+text (строка)
+inline_data ( genai.protos.Blob ), где большой двоичный объект содержит двоичные data и mime_type .
+или другие типы данных.
+Вы также можете передать любой из этих классов как эквивалентный словарь.
+
+Примечание. Единственными допустимыми типами MIME являются некоторые типы изображений, image/* .
+Итак, полностью типизированный эквивалент предыдущего примера:
+
+
+model = genai.GenerativeModel('gemini-1.5-flash')
+response = model.generate_content(
+    genai.protos.Content(
+        parts = [
+            genai.protos.Part(text="Write a short, engaging blog post based on this picture."),
+            genai.protos.Part(
+                inline_data=genai.protos.Blob(
+                    mime_type='image/jpeg',
+                    data=pathlib.Path('image.jpg').read_bytes()
+                )
+            ),
+        ],
+    ),
+    stream=True)
+
+response.resolve()
+
+to_markdown(response.text[:100] + "... [TRIMMED] ...")
+
+Meal prepping is a great way to save time and money, and it can also help you to eat healthier. By ... [TRIMMED] ...
+Многоходовые разговоры
+Хотя класс genai.ChatSession , показанный ранее, может обрабатывать множество вариантов использования, он делает некоторые предположения. Если ваш вариант использования не вписывается в эту реализацию чата, полезно помнить, что genai.ChatSession — это всего лишь оболочка GenerativeModel.generate_content . Помимо одиночных запросов, он может обрабатывать многооборотные разговоры.
+
+Отдельные сообщения представляют собой объекты genai.protos.Content или совместимые словари, как показано в предыдущих разделах. В качестве словаря сообщение требует role ключей и ключей parts . role в разговоре может быть либо user , который предоставляет подсказки, либо model , которая предоставляет ответы.
+
+Передайте список объектов genai.protos.Content , и он будет рассматриваться как многоходовой чат:
+
+
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+messages = [
+    {'role':'user',
+     'parts': ["Briefly explain how a computer works to a young child."]}
+]
+response = model.generate_content(messages)
+
+to_markdown(response.text)
+
+Imagine a computer as a really smart friend who can help you with many things. Just like you have a brain to think and learn, a computer has a brain too, called a processor. It's like the boss of the computer, telling it what to do.
+
+Inside the computer, there's a special place called memory, which is like a big storage box. It remembers all the things you tell it to do, like opening games or playing videos.
+
+When you press buttons on the keyboard or click things on the screen with the mouse, you're sending messages to the computer. These messages travel through special wires, called cables, to the processor.
+
+The processor reads the messages and tells the computer what to do. It can open programs, show you pictures, or even play music for you.
+
+All the things you see on the screen are created by the graphics card, which is like a magic artist inside the computer. It takes the processor's instructions and turns them into colorful pictures and videos.
+
+To save your favorite games, videos, or pictures, the computer uses a special storage space called a hard drive. It's like a giant library where the computer can keep all your precious things safe.
+
+And when you want to connect to the internet to play games with friends or watch funny videos, the computer uses something called a network card to send and receive messages through the internet cables or Wi-Fi signals.
+
+So, just like your brain helps you learn and play, the computer's processor, memory, graphics card, hard drive, and network card all work together to make your computer a super-smart friend that can help you do amazing things!
+Чтобы продолжить разговор, добавьте ответ и еще одно сообщение.
+
+Примечание. Для многоходовых разговоров вам необходимо отправлять всю историю разговоров с каждым запросом. API не имеет состояния .
+
+messages.append({'role':'model',
+                 'parts':[response.text]})
+
+messages.append({'role':'user',
+                 'parts':["Okay, how about a more detailed explanation to a high school student?"]})
+
+response = model.generate_content(messages)
+
+to_markdown(response.text)
+
+At its core, a computer is a machine that can be programmed to carry out a set of instructions. It consists of several essential components that work together to process, store, and display information:
+
+**1. Processor (CPU):**
+   -   The brain of the computer.
+   -   Executes instructions and performs calculations.
+   -   Speed measured in gigahertz (GHz).
+   -   More GHz generally means faster processing.
+
+**2. Memory (RAM):**
+   -   Temporary storage for data being processed.
+   -   Holds instructions and data while the program is running.
+   -   Measured in gigabytes (GB).
+   -   More GB of RAM allows for more programs to run simultaneously.
+
+**3. Storage (HDD/SSD):**
+   -   Permanent storage for data.
+   -   Stores operating system, programs, and user files.
+   -   Measured in gigabytes (GB) or terabytes (TB).
+   -   Hard disk drives (HDDs) are traditional, slower, and cheaper.
+   -   Solid-state drives (SSDs) are newer, faster, and more expensive.
+
+**4. Graphics Card (GPU):**
+   -   Processes and displays images.
+   -   Essential for gaming, video editing, and other graphics-intensive tasks.
+   -   Measured in video RAM (VRAM) and clock speed.
+
+**5. Motherboard:**
+   -   Connects all the components.
+   -   Provides power and communication pathways.
+
+**6. Input/Output (I/O) Devices:**
+   -   Allow the user to interact with the computer.
+   -   Examples: keyboard, mouse, monitor, printer.
+
+**7. Operating System (OS):**
+   -   Software that manages the computer's resources.
+   -   Provides a user interface and basic functionality.
+   -   Examples: Windows, macOS, Linux.
+
+When you run a program on your computer, the following happens:
+
+1.  The program instructions are loaded from storage into memory.
+2.  The processor reads the instructions from memory and executes them one by one.
+3.  If the instruction involves calculations, the processor performs them using its arithmetic logic unit (ALU).
+4.  If the instruction involves data, the processor reads or writes to memory.
+5.  The results of the calculations or data manipulation are stored in memory.
+6.  If the program needs to display something on the screen, it sends the necessary data to the graphics card.
+7.  The graphics card processes the data and sends it to the monitor, which displays it.
+
+This process continues until the program has completed its task or the user terminates it.
+Конфигурация поколения
+Аргумент generation_config позволяет вам изменять параметры генерации. Каждое приглашение, которое вы отправляете в модель, включает значения параметров, которые управляют тем, как модель генерирует ответы.
+
+
+model = genai.GenerativeModel('gemini-1.5-flash')
+response = model.generate_content(
+    'Tell me a story about a magic backpack.',
+    generation_config=genai.types.GenerationConfig(
+        # Only one candidate for now.
+        candidate_count=1,
+        stop_sequences=['x'],
+        max_output_tokens=20,
+        temperature=1.0)
+)
+
+text = response.text
+
+if response.candidates[0].finish_reason.name == "MAX_TOKENS":
+    text += '...'
+
+to_markdown(text)
+
+Once upon a time, in a small town nestled amidst lush green hills, lived a young girl named...
+Что дальше
+Проектирование подсказок — это процесс создания подсказок, которые вызывают желаемый ответ от языковых моделей. Написание хорошо структурированных подсказок является важной частью обеспечения точных и качественных ответов языковой модели. Узнайте о лучших практиках быстрого написания писем .
+Gemini предлагает несколько вариантов модели для удовлетворения потребностей различных вариантов использования, таких как типы и сложность ввода, реализации для чата или других языковых задач диалога, а также ограничения по размеру. Узнайте о доступных моделях Gemini .
+    

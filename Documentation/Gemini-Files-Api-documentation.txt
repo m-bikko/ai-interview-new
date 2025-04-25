@@ -1,0 +1,64 @@
+Files API
+
+The Gemini family of artificial intelligence (AI) models is built to handle various types of input data, including text, images, and audio. Since these models can handle more than one type or mode of data, the Gemini models are called multimodal models or explained as having multimodal capabilities.
+
+This guide shows you how to work with media files using the Files API. The basic operations are the same for audio files, images, videos, documents, and other supported file types.
+
+For file prompting guidance, check out the File prompt guide section.
+
+Upload a file
+You can use the Files API to upload a media file. Always use the Files API when the total request size (including the files, text prompt, system instructions, etc.) is larger than 20 MB.
+
+The following code uploads a file and then uses the file in a call to generateContent.
+
+Python
+JavaScript
+Go
+REST
+
+from google import genai
+
+client = genai.Client(api_key="GOOGLE_API_KEY")
+
+myfile = client.files.upload(file="path/to/sample.mp3")
+
+response = client.models.generate_content(
+    model="gemini-2.0-flash", contents=["Describe this audio clip", myfile]
+)
+
+print(response.text)
+Get metadata for a file
+You can verify that the API successfully stored the uploaded file and get its metadata by calling files.get.
+
+Python
+JavaScript
+Go
+REST
+
+myfile = client.files.upload(file='path/to/sample.mp3')
+file_name = myfile.name
+myfile = client.files.get(name=file_name)
+print(myfile)
+List uploaded files
+You can upload multiple files using the Files API. The following code gets a list of all the files uploaded:
+
+Python
+JavaScript
+Go
+REST
+
+print('My files:')
+for f in client.files.list():
+    print(' ', f.name)
+Delete uploaded files
+Files are automatically deleted after 48 hours. You can also manually delete an uploaded file:
+
+Python
+JavaScript
+Go
+REST
+
+myfile = client.files.upload(file='path/to/sample.mp3')
+client.files.delete(name=myfile.name)
+Usage info
+You can use the Files API to upload and interact with media files. The Files API lets you store up to 20 GB of files per project, with a per-file maximum size of 2 GB. Files are stored for 48 hours. During that time, you can use the API to get metadata about the files, but you can't download the files. The Files API is available at no cost in all regions where the Gemini API is available.

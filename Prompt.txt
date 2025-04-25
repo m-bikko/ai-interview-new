@@ -1,0 +1,80 @@
+I have directory of documentation of actual usage of Gemini API.
+
+Use model "gemini-2.0-flash" even if in documentation written not this model.
+
+My API Key: AIzaSyA7zgkfPqewfQsGhQi7L8OYVxsiZuOguSU
+
+I need to make platform called AI Interview. The platform is used for taking interviews and having reviews for them. 
+
+Also there will be CV uploading and having review for it. 
+
+Make the interviews for IT professionals.
+
+Everything starts from Landing page. It must show key features of the project.
+
+Then it summons user to login or register(Make this part on your own).
+
+So the project's first sections:
+
+-login/register
+
+After login (Left part of screen - navigation to pages):
+
+- Catalog(consisting of professions and grades(junior/middle/senior))
+- History 
+- CVs
+- Profile
+
+Catalog:
+
+- Filter by profession
+- Filter by skills
+- Filter by grade
+- Search
+- Cards of professions 
+
+History:
+
+- Cards of taken interviews and review for them(add rating 1.0-5.0)
+- On top of the list place "Take a now interview"
+- Filter(by rating)
+
+CVs:
+
+- Switch(Upload CV/List of CVs uploaded and reviews)
+    1) Upload CV
+        - Uploading .pdf format
+    2) List of CVs uploaded and reviews:
+        - in this section also we can see lacking sections/benefits/what to improve
+
+Profile:
+
+- Full name
+- Actual CV(also add ability to download)
+- Profile photo(1:1 ratio)
+
+Now, in catalog after entering to card:
+
+- Switch(Take interview/History(only for this profession))
+
+The interview format:
+- 5 questions in texted format(Create a dataset for each of the profession and level). But the answer must be recorded as audio and send for review to Gemini. We need to create review based on what question was and what reply was taken by platform from user.
+
+You can also add something for your own. But note that you should write every detail of the project in readme.md. It must contain every feature of the project
+
+Now, let's see what professions we must have(for each of them make 15 questions):
+
+- Backend Developer
+- Frontend Developer
+- Full Stack Developer
+- Data Scientist
+- Product Manager
+- DevOps Engineer
+- UX/UI Designer
+- Mobile Developer
+
+If something external you need. Tell me, I'll provide it
+
+Don't read 'Prompt.txt' it is my prompt for you and the same text as I'm sending you.
+
+Write the project on python. If something is missing in documentation, and you know how to do that, make it for your own, if you don't tell me

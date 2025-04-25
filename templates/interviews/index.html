@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Interview History - AI Interview{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Interview History</h1>
+        <a href="{{ url_for('catalog.index') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Take a New Interview
+        </a>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Filter Interviews</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('interviews.index') }}">
+                <div class="row align-items-end">
+                    <div class="col-md-6 mb-3">
+                        {{ form.rating.label(class="form-label") }}
+                        {{ form.rating(class="form-select") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.submit(class="btn btn-primary w-100") }}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Interviews List -->
+    {% if interviews %}
+        <div class="row">
+            {% for interview in interviews %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ interview.profession.name }}</h5>
+                            <span class="badge {% if interview.grade == 'junior' %}bg-success{% elif interview.grade == 'middle' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                {{ interview.grade | capitalize }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Date:</strong> {{ interview.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p>
+                                <strong>Rating:</strong>
+                                {% if interview.rating %}
+                                    <span class="badge rating-badge rating-{{ interview.rating | int }}">
+                                        {{ interview.rating }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                {% endif %}
+                            </p>
+                            <p>
+                                <strong>Status:</strong>
+                                {% if interview.review %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">In Progress</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('interviews.review', interview_id=interview.id) }}" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>You haven't taken any interviews yet.</p>
+            <a href="{{ url_for('catalog.index') }}" class="btn btn-primary mt-2">
+                Browse professions and start your first interview
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock main_content %}

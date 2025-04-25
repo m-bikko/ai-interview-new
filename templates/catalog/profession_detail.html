@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profession.name }} - AI Interview{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ profession.name }}</h1>
+        <a href="{{ url_for('catalog.index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Catalog
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">About this Profession</h4>
+        </div>
+        <div class="card-body">
+            <h5 class="mb-3 text-primary">Description</h5>
+            <p class="mb-4">{{ profession.description }}</p>
+            
+            <h5 class="mb-3 text-primary">Key Skills</h5>
+            <div class="skill-badge-container mb-3">
+                {% for skill in profession.skills %}
+                    <span class="badge bg-secondary">{{ skill.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="interview-tab" data-bs-toggle="tab" data-bs-target="#interview" type="button" role="tab" aria-controls="interview" aria-selected="true">
+                        Take Interview
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
+                        History
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="interview" role="tabpanel" aria-labelledby="interview-tab">
+                    <h4 class="mb-4">Choose Experience Level</h4>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 {{ 'border-success border-3' if selected_grade == 'junior' }}">
+                                <div class="card-header bg-success text-white text-center">
+                                    <h5 class="mb-0">Junior Level</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <i class="fas fa-seedling fa-3x text-success mb-3"></i>
+                                    </div>
+                                    <p class="card-text">For candidates with 0-2 years of experience</p>
+                                    <a href="{{ url_for('interviews.start_interview', profession_id=profession.id, grade='junior') }}" class="btn btn-success">
+                                        <i class="fas fa-play-circle me-1"></i> Start Junior Interview
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 {{ 'border-warning border-3' if selected_grade == 'middle' }}">
+                                <div class="card-header bg-warning text-dark text-center">
+                                    <h5 class="mb-0">Middle Level</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <i class="fas fa-tree fa-3x text-warning mb-3"></i>
+                                    </div>
+                                    <p class="card-text">For candidates with 2-5 years of experience</p>
+                                    <a href="{{ url_for('interviews.start_interview', profession_id=profession.id, grade='middle') }}" class="btn btn-warning">
+                                        <i class="fas fa-play-circle me-1"></i> Start Middle Interview
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 {{ 'border-danger border-3' if selected_grade == 'senior' }}">
+                                <div class="card-header bg-danger text-white text-center">
+                                    <h5 class="mb-0">Senior Level</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <i class="fas fa-mountain fa-3x text-danger mb-3"></i>
+                                    </div>
+                                    <p class="card-text">For candidates with 5+ years of experience</p>
+                                    <a href="{{ url_for('interviews.start_interview', profession_id=profession.id, grade='senior') }}" class="btn btn-danger">
+                                        <i class="fas fa-play-circle me-1"></i> Start Senior Interview
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if selected_grade %}
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i> The {{ selected_grade | capitalize }} level is pre-selected based on your filter choice.
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                    <h4 class="mb-4">Your Interview History for {{ profession.name }}</h4>
+                    {% set interviews = current_user.interviews | selectattr('profession_id', 'eq', profession.id) | list %}
+                    
+                    {% if interviews %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Level</th>
+                                        <th>Rating</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for interview in interviews | sort(attribute='timestamp', reverse=True) %}
+                                        <tr>
+                                            <td>
+                                                <i class="far fa-calendar-alt text-muted me-1"></i>
+                                                {{ interview.timestamp.strftime('%b %d, %Y') }}<br>
+                                                <small class="text-muted">{{ interview.timestamp.strftime('%H:%M') }}</small>
+                                            </td>
+                                            <td>
+                                                {% if interview.grade == 'junior' %}
+                                                    <span class="grade-badge junior">
+                                                        <i class="fas fa-seedling me-1"></i> Junior
+                                                    </span>
+                                                {% elif interview.grade == 'middle' %}
+                                                    <span class="grade-badge middle">
+                                                        <i class="fas fa-tree me-1"></i> Middle
+                                                    </span>
+                                                {% else %}
+                                                    <span class="grade-badge senior">
+                                                        <i class="fas fa-mountain me-1"></i> Senior
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if interview.rating %}
+                                                    <span class="rating-badge rating-{{ interview.rating | int }}">
+                                                        {{ interview.rating }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('interviews.review', interview_id=interview.id) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-eye me-1"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            You haven't taken any interviews for this profession yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock main_content %}

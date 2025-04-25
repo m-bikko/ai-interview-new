@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - AI Interview{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Your Profile</h1>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="profile-card text-center">
+                {% if current_user.profile_photo %}
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.profile_photo) }}" alt="Profile Photo" class="profile-photo">
+                {% else %}
+                    <div class="profile-photo d-flex justify-content-center align-items-center bg-light">
+                        <i class="fas fa-user fa-5x text-secondary"></i>
+                    </div>
+                {% endif %}
+                <h3>{{ current_user.full_name }}</h3>
+                <p class="text-muted">{{ current_user.username }}</p>
+                <p><i class="fas fa-envelope me-2"></i> {{ current_user.email }}</p>
+                <p><i class="fas fa-calendar me-2"></i> Joined {{ current_user.created_at.strftime('%Y-%m-%d') }}</p>
+                
+                {% if latest_cv %}
+                    <div class="mt-3">
+                        <h5>Latest CV</h5>
+                        <a href="{{ url_for('profile.download_cv', cv_id=latest_cv.id) }}" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Update Profile</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('profile.update') }}" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            {% if form.username.errors %}
+                                {{ form.username(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.username.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.username(class="form-control") }}
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            {% if form.email.errors %}
+                                {{ form.email(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.email(class="form-control") }}
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.full_name.label(class="form-label") }}
+                            {% if form.full_name.errors %}
+                                {{ form.full_name(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.full_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.full_name(class="form-control") }}
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.profile_photo.label(class="form-label") }}
+                            {% if form.profile_photo.errors %}
+                                {{ form.profile_photo(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.profile_photo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.profile_photo(class="form-control") }}
+                            {% endif %}
+                            <div class="form-text">Upload a square image. The image will be resized to a 1:1 ratio.</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Activity Summary</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="p-3 rounded bg-light">
+                                <h1 class="display-4">{{ current_user.interviews|length }}</h1>
+                                <p class="lead">Interviews Taken</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="p-3 rounded bg-light">
+                                <h1 class="display-4">{{ current_user.cvs|length }}</h1>
+                                <p class="lead">CVs Uploaded</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            {% set avg_rating = namespace(value=0) %}
+                            {% set count = namespace(value=0) %}
+                            
+                            {% for interview in current_user.interviews if interview.rating %}
+                                {% set avg_rating.value = avg_rating.value + interview.rating %}
+                                {% set count.value = count.value + 1 %}
+                            {% endfor %}
+                            
+                            <div class="p-3 rounded bg-light">
+                                <h1 class="display-4">
+                                    {% if count.value > 0 %}
+                                        {{ (avg_rating.value / count.value) | round(1) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </h1>
+                                <p class="lead">Avg. Rating</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock main_content %}

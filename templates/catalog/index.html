@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Catalog - AI Interview{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Profession Catalog</h1>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Filter Options</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('catalog.index') }}">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        {{ form.profession.label(class="form-label") }}
+                        {{ form.profession(class="form-select") }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.skill.label(class="form-label") }}
+                        {{ form.skill(class="form-select") }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.grade.label(class="form-label") }}
+                        {{ form.grade(class="form-select") }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.search.label(class="form-label") }}
+                        {{ form.search(class="form-control", placeholder="Search professions...") }}
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Professions List -->
+    <div class="row">
+        {% if professions %}
+            {% for profession in professions %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="profession-item">
+                        <h3>{{ profession.name }}</h3>
+                        <div class="grade-badge-container mb-3">
+                            <span class="grade-badge junior">Junior</span>
+                            <span class="grade-badge middle">Middle</span>
+                            <span class="grade-badge senior">Senior</span>
+                        </div>
+                        <p>{{ profession.description }}</p>
+                        <div class="skill-badge-container">
+                            {% for skill in profession.skills %}
+                                <span class="badge bg-secondary">{{ skill.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <a href="{{ url_for('catalog.profession_detail', profession_id=profession.id) }}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">No professions found matching your criteria. Try adjusting your filters.</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock main_content %}

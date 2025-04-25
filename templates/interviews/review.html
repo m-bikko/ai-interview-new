@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Interview Review - AI Interview{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Interview Review</h1>
+        <a href="{{ url_for('interviews.index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to History
+        </a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">{{ interview.profession.name }} ({{ interview.grade | capitalize }}) Interview</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Date:</strong> {{ interview.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p>
+                        <strong>Overall Rating:</strong>
+                        {% if interview.rating %}
+                            <span class="badge rating-badge rating-{{ interview.rating | int }}">
+                                {{ interview.rating }}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary">N/A</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if interview.review %}
+        <div class="alert alert-warning mb-4">
+            <p><i class="fas fa-info-circle"></i> <strong>Note:</strong> Due to API limitations, this is a simulated review based on your interview questions. When the full Gemini API is available, we'll provide actual audio analysis.</p>
+        </div>
+        
+        <div class="review-section">
+            <h3>Overall Assessment</h3>
+            <div class="mb-4">
+                {{ interview.review.content | safe | replace('\n', '<br>') }}
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h3>Strengths</h3>
+                    <div class="mb-4">
+                        {{ interview.review.strengths | safe | replace('\n', '<br>') }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h3>Weaknesses</h3>
+                    <div class="mb-4">
+                        {{ interview.review.weaknesses | safe | replace('\n', '<br>') }}
+                    </div>
+                </div>
+            </div>
+            
+            <h3>Suggestions for Improvement</h3>
+            <div class="mb-4">
+                {{ interview.review.improvements | safe | replace('\n', '<br>') }}
+            </div>
+        </div>
+    {% endif %}
+    
+    <h2 class="mb-4 mt-5">Question Responses</h2>
+    
+    <div class="accordion" id="questionAccordion">
+        {% for answer in interview.answers %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading{{ answer.id }}">
+                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ answer.id }}" aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="collapse{{ answer.id }}">
+                        Question {{ loop.index }}:
+                        {% if answer.feedback and answer.feedback.rating %}
+                            <span class="badge rating-badge rating-{{ answer.feedback.rating | int }} ms-2">
+                                {{ answer.feedback.rating }}
+                            </span>
+                        {% endif %}
+                    </button>
+                </h2>
+                <div id="collapse{{ answer.id }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" aria-labelledby="heading{{ answer.id }}" data-bs-parent="#questionAccordion">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <h5>Question:</h5>
+                            <p class="lead">{{ answer.question.text }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h5>Your Answer:</h5>
+                            <audio controls class="w-100">
+                                <source src="{{ url_for('static', filename='uploads/' + answer.audio_file) }}" type="audio/webm">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                        
+                        {% if answer.feedback %}
+                            <div class="mt-4">
+                                <h5>Feedback:</h5>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <p class="text-muted mb-3 small"><i class="fas fa-exclamation-triangle"></i> This is simulated feedback (audio content was not analyzed)</p>
+                                        {{ answer.feedback.content | safe | replace('\n', '<br>') }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <div class="text-center mt-5 mb-5">
+        <a href="{{ url_for('interviews.start_interview', profession_id=interview.profession_id, grade=interview.grade) }}" class="btn btn-success btn-lg">
+            <i class="fas fa-redo"></i> Retake Interview
+        </a>
+    </div>
+</div>
+{% endblock main_content %}
